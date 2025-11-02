@@ -1,84 +1,51 @@
 class Produtos {
-    navegarParaProdutos() {
-        cy.contains('Products').click();
-    }
+  // Abre a página de produtos pelo link do menu
+  navegarParaProdutos() {
+    cy.contains("a", "Products").click();
+  }
 
-    validarPaginaTodosProdutos() {
-        cy.url().should('include', '/products');
-        cy.contains('All Products').should('be.visible');
-    }
+  // Clica para visualizar detalhes do primeiro produto listado
+  visualizarPrimeiroProduto() {
+    cy.get(".features_items .product-image-wrapper").first().contains("View Product").click();
+  }
 
-    validarListaProdutosVisivel() {
-        cy.get('.features_items .product-image-wrapper').should('have.length.greaterThan', 0);
-    }
+  // Fluxo de pré-cadastro (nome + email) para criar conta
+  preencherFormularioDeCadastro(nome, email) {
+    cy.get('[data-qa="signup-name"]').clear().type(nome);
+    cy.get('[data-qa="signup-email"]').clear().type(email);
+    cy.contains("button", "Signup").click();
+  }
 
-    visualizarPrimeiroProduto() {
-        cy.get('.features_items .product-image-wrapper').first().contains('View Product').click();
-    }
+  // Mesmo fluxo, mas recebendo um objeto de fixture (name, email)
+  preencherFormularioDeCadastroComFixture(userData) {
+    cy.get('[data-qa="signup-name"]').clear().type(userData.name);
+    cy.get('[data-qa="signup-email"]').clear().type(userData.email);
+    cy.contains("button", "Signup").click();
+  }
 
-    validarDetalhesProduto() {
-        cy.url().should('include', '/product_details/');
-        cy.get('.product-information h2').should('be.visible'); // nome
-        cy.get('.product-information p').eq(0).should('contain.text', 'Category');
-        cy.get('.product-information span span').should('be.visible'); // preço
-        cy.get('.product-information p').eq(1).should('contain.text', 'Availability');
-        cy.get('.product-information p').eq(2).should('contain.text', 'Condition');
-        cy.get('.product-information p').eq(3).should('contain.text', 'Brand');
-    }
+  // Tenta cadastrar um e-mail já existente (ação apenas)
+  preencherFormularioDeCadastroExistente(nome, email) {
+    cy.get('[data-qa="signup-name"]').clear().type(nome);
+    cy.get('[data-qa="signup-email"]').clear().type(email);
+    cy.contains("button", "Signup").click();
+  }
 
-    preencherFormularioDeCadastro(nome, email) {
-        cy.get('[data-qa="signup-name"]').type(nome);
-        cy.get('[data-qa="signup-email"]').type(email);
-        cy.contains('button','Signup').click();
-    }
+  // Pesquisa por um produto pelo texto
+  pesquisarProduto(nomeProduto) {
+    cy.get("#search_product").clear().type(nomeProduto);
+    cy.get("#submit_search").click();
+  }
 
-    preencherFormularioDeCadastroComFixture(userData) {
-        cy.get('[data-qa="signup-name"]').type(userData.name);
-        cy.get('[data-qa="signup-email"]').type(userData.email);
-        cy.contains('button','Signup').click();
-    }
+  // Rola até o rodapé (Subscription)
+  scrollParaRodape() {
+    cy.scrollTo("bottom");
+  }
 
-    validarContaCriada() {
-        cy.url().should('includes','account_created');
-        cy.contains('b','Account Created!');
-    }
-
-    preencherFormularioDeCadastroExistente(nome, email) {
-        cy.get('[data-qa="signup-name"]').type(nome);
-        cy.get('[data-qa="signup-email"]').type(email);
-        cy.contains('button','Signup').click();
-    }
-
-    validarEmailExistente() {
-        cy.get('.signup-form > form > p').should('contain', 'Email Address already exist!');
-    }
-
-    pesquisarProduto(nomeProduto) {
-        cy.get('#search_product').type(nomeProduto);
-        cy.get('#submit_search').click();
-    }
-
-    validarProdutosPesquisados() {
-        cy.contains('Searched Products').should('be.visible');
-        cy.get('.features_items .product-image-wrapper').should('have.length.greaterThan', 0);
-    }
-
-    scrollParaRodape() {
-        cy.scrollTo('bottom');
-    }
-
-    verificarTextoSubscription() {
-        cy.contains('SUBSCRIPTION', { matchCase: false }).should('be.visible');
-    }
-
-    inscreverEmailNoRodape(email) {
-        cy.get('#susbscribe_email').clear().type(email);
-        cy.get('#subscribe').click();
-    }
-
-    verificarMensagemSucessoSubscricao() {
-        cy.get('.alert-success').should('be.visible').and('contain', 'You have been successfully subscribed!');
-    }
+  // Preenche o e-mail e envia a inscrição do rodapé
+  inscreverEmailNoRodape(email) {
+    cy.get("#susbscribe_email").clear().type(email);
+    cy.get("#subscribe").click();
+  }
 }
 
 export default new Produtos();

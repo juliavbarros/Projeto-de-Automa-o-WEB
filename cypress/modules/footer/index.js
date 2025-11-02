@@ -1,24 +1,14 @@
 class Footer {
-    verificarHomePageVisivel() {
-        cy.get('body').should('be.visible');
-    }
+  // Rola até o rodapé
+  scrollParaFooter() {
+    cy.scrollTo("bottom");
+  }
 
-    scrollParaFooter() {
-        cy.scrollTo('bottom');
-    }
-
-    verificarTextoSubscription() {
-        cy.contains('SUBSCRIPTION').should('be.visible');
-    }
-
-    inscreverEmailFooter(email) {
-        cy.get('#susbscribe_email').type(email);
-        cy.get('#subscribe').click();
-    }
-
-    verificarMensagemSucesso() {
-        cy.contains('You have been successfully subscribed!').should('be.visible');
-    }
+  // Digita e envia o e-mail na área de subscription
+  inscreverEmailFooter(email) {
+    cy.get("#susbscribe_email").clear().type(email);
+    cy.get("#subscribe").click();
+  }
 }
 
 export default new Footer();

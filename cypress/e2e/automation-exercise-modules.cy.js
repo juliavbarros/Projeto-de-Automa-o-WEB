@@ -1,151 +1,217 @@
 // <reference types='cypress' />
-import userData from '../fixtures/example.json'
-import {
-    getRandomNumber,
-    getRandomEmail
-} from '../support/helpers'
+import userData from "../fixtures/example.json";
+import { getRandomNumber, getRandomEmail } from "../support/helpers";
 
-import {faker} from '@faker-js/faker'
-//import { navegarParaLogin } from '../modules/menu'
-import menu from '../modules/menu'
-//import { preencherFormularioDePreCadastro} from '../modules/login'
-import login from '../modules/login'
-import cadastro from '../modules/cadastro'
-import produtos from '../modules/produtos'
-import contacto from '../modules/contacto'
-import carrinho from '../modules/carrinho'
+import { faker } from "@faker-js/faker";
+import menu from "../modules/menu";
+import login from "../modules/login";
+import cadastro from "../modules/cadastro";
+import produtos from "../modules/produtos";
+import contacto from "../modules/contacto";
+import carrinho from "../modules/carrinho";
 
+describe("Automation Exercise", () => {
+  beforeEach(() => {
+    // Arrange
+    cy.viewport("iphone-xr");
+    cy.visit("https://automationexercise.com");
+    menu.navegarParaLogin();
+  });
 
+  it("Cadastrar um usuário", () => {
+    // Arrange
+    // (pré-condição: estar na página de login)
 
-describe('Automation Exercise', () => {
-    beforeEach(() => {
-        cy.viewport('iphone-xr')
-        cy.visit('https://automationexercise.com')
-        menu.navegarParaLogin()
-    });
+    // Act
+    login.preencherFormularioDePreCadastro();
+    cadastro.preencherFormularioDeCadastroCompleto();
 
-    it('Cadastrar um usuário', () => {
+    // Assert
+    cy.url().should("includes", "account_created");
+    cy.contains("b", "Account Created!").should("be.visible");
+  });
 
-        login.preencherFormularioDePreCadastro()
-        cadastro.preencherFormularioDeCadastroCompleto()
+  it("Login de usuario com e-mail e senha corretos", () => {
+    // Arrange
+    const { user, password, name } = userData;
 
-        //assert
-        cy.url().should('includes','account_created')
-        cy.contains('b','Account Created!')
+    // Act
+    login.preencherFormularioDeLogin(user, password);
 
-    });
+    // Assert
+    cy.get("i.fa-user").parent().should("contain", name);
+    cy.get('a[href="/logout"]').should("be.visible");
+    cy.get(":nth-child(10) > a").should("be.visible").and("contain.text", "Logged in as").and("contain.text", name);
+  });
 
-    it('Login de usuario com e-mail e senha corretos', () => {
+  it("Login de usuário com e-mail e senha incorretos", () => {
+    // Arrange
+    const { user } = userData;
 
-        login.preencherFormularioDeLogin(userData.user, userData.password)
+    // Act
+    login.preencherFormularioDeLogin(user, "54321");
 
-        cy.get('i.fa-user').parent().should('contain', userData.name)
-        cy.get('a[href="/logout"]').should('be.visible')
+    // Assert
+    cy.get(".login-form > form > p").should("be.visible").and("contain", "Your email or password is incorrect!");
+  });
 
-        cy.get(':nth-child(10) > a')
-        .should('be.visible')
-        .and('contain.text','Logged in as')
-        .and('contain.text', userData.name)
-        
-        
-    });
+  it("Logout de usuario", () => {
+    // Arrange
+    const { user, password } = userData;
+    login.preencherFormularioDeLogin(user, password);
 
-    it('Login de usuário com e-mail e senha incorretos', () => {
-        
-        login.preencherFormularioDeLogin(userData.user, '54321')
+    // Act
+    menu.efetuarLogout();
 
-        cy.get('.login-form > form > p').should('contain','Your email or password is incorrect!')
-    });
+    // Assert
+    cy.url().should("contain", "login");
+    cy.contains("Login to your account").should("be.visible");
+  });
 
-    it('Logout de usuario', () => {
-       
-        login.preencherFormularioDeLogin(userData.user, userData.password)
-        menu.efetuarLogout()
+  it("Cadastrar Usuario com e-mail existente no sistema", () => {
+    // Arrange
+    const { name, user } = userData;
 
-        cy.url().should('contain', 'login')
-        cy.contains('Login to your account')
+    // Act
+    produtos.preencherFormularioDeCadastroExistente(name, user);
 
+    // Assert
+    cy.get(".signup-form > form > p").should("be.visible").and("contain", "Email Address already exist!");
+  });
 
-    });
+  it("Enviar um Formulário de Contacto com upload de arquivo", () => {
+    // Arrange
+    contacto.navegarParaContato();
 
-    it('Cadastrar Usuario com e-mail existente no sistema', () => {
-        produtos.preencherFormularioDeCadastroExistente(userData.name, userData.user);
-        produtos.validarEmailExistente();
-    });
+    // Act
+    contacto.preencherFormularioContato(userData);
+    contacto.anexarArquivo("example.json");
+    contacto.enviarFormulario();
 
-    it('Enviar um Formulário de Contacto com upload de arquivo',()=> {
-        contacto.navegarParaContato();
-        contacto.preencherFormularioContato(userData);
-        contacto.anexarArquivo('example.json');
-        contacto.enviarFormulario();
-        contacto.validarSucessoEnvio();
-    });
+    // Assert
+    cy.get(".status")
+      .should("be.visible")
+      .and("contain.text", "Success! Your details have been submitted successfully.");
+  });
 
-    it('Verificar produtos e pagina de detalhes do produto', ()=> {
-        produtos.navegarParaProdutos();
-        produtos.validarPaginaTodosProdutos();
-        produtos.validarListaProdutosVisivel();
-        produtos.visualizarPrimeiroProduto();
-        produtos.validarDetalhesProduto();
-    });
+  it("Verificar produtos e pagina de detalhes do produto", () => {
+    // Arrange
+    produtos.navegarParaProdutos();
 
-    it('Pesquisar produto', () => {
-        produtos.navegarParaProdutos();
-        produtos.validarPaginaTodosProdutos();
-        produtos.pesquisarProduto('Dress'); 
-        produtos.validarProdutosPesquisados();
-    });
+    // Assert (página todos os produtos)
+    cy.url().should("include", "/products");
+    cy.contains("All Products").should("be.visible");
+    cy.get(".features_items .product-image-wrapper").should("have.length.greaterThan", 0);
 
-    it('Verificar subscrição na home page', () => {
-    
-    cy.get('body').should('be.visible');
+    // Act (abrir primeiro produto)
+    cy.get(".features_items .product-image-wrapper").first().contains("View Product").click();
+
+    // Assert (detalhes do produto)
+    cy.url().should("include", "/product_details/");
+    cy.get(".product-information h2").should("be.visible"); // nome
+    cy.get(".product-information p").eq(0).should("contain.text", "Category");
+    cy.get(".product-information span span").should("be.visible"); // preço
+    cy.get(".product-information p").eq(1).should("contain.text", "Availability");
+    cy.get(".product-information p").eq(2).should("contain.text", "Condition");
+    cy.get(".product-information p").eq(3).should("contain.text", "Brand");
+  });
+
+  it("Pesquisar produto", () => {
+    // Arrange
+    produtos.navegarParaProdutos();
+    cy.url().should("include", "/products");
+    cy.contains("All Products").should("be.visible");
+
+    // Act
+    produtos.pesquisarProduto("Dress");
+
+    // Assert
+    cy.contains("Searched Products").should("be.visible");
+    cy.get(".features_items .product-image-wrapper").should("have.length.greaterThan", 0);
+  });
+
+  it("Verificar subscrição na home page", () => {
+    // Arrange
+    cy.get("body").should("be.visible");
+
+    // Act
     produtos.scrollParaRodape();
-    produtos.verificarTextoSubscription();
+
+    // Assert (texto de subscription)
+    cy.contains("SUBSCRIPTION", { matchCase: false }).should("be.visible");
+
+    // Arrange (gerar e-mail)
     const email = faker.internet.email();
+
+    // Act (inscrever)
     produtos.inscreverEmailNoRodape(email);
-    produtos.verificarMensagemSucessoSubscricao();
-    });
 
-    it.only('Registrar antes de finalizar uma compra', () => {
+    // Assert (sucesso)
+    cy.get(".alert-success").should("be.visible").and("contain", "You have been successfully subscribed!");
+  });
 
-        const nome = faker.person.firstName();
-        const email = faker.internet.email();
-        produtos.preencherFormularioDeCadastro(nome, email);
-        cadastro.preencherFormularioDeCadastroCompleto({ firstName: nome });
+  it("Registrar antes de finalizar uma compra", () => {
+    // Arrange (dados do novo usuário)
+    const nome = faker.person.firstName();
+    const email = faker.internet.email();
 
-        produtos.validarContaCriada();
-        cy.contains('Continue').click();
+    // Act (realizar pré-cadastro)
+    produtos.preencherFormularioDeCadastro(nome, email);
 
-        cy.get('i.fa-user').parent().should('contain', nome);
+    // Act (preencher cadastro completo)
+    cadastro.preencherFormularioDeCadastroCompleto({ firstName: nome });
 
-        produtos.navegarParaProdutos();
-        carrinho.adicionarPrimeiroProdutoAoCarrinho();
+    // Assert (conta criada)
+    cy.url().should("includes", "account_created");
+    cy.contains("b", "Account Created!").should("be.visible");
 
+    // Act (continuar)
+    cy.contains("Continue").click();
 
-        carrinho.navegarParaCarrinho();
+    // Assert (logado)
+    cy.get("i.fa-user").parent().should("contain", nome);
 
-        carrinho.verificarPaginaCarrinho();
+    // Act (adicionar produto ao carrinho)
+    produtos.navegarParaProdutos();
+    cy.url().should("include", "/products");
+    cy.contains("All Products").should("be.visible");
+    carrinho.adicionarPrimeiroProdutoAoCarrinho();
 
-        carrinho.clicarProceedToCheckout();
+    // Act (ir para o carrinho)
+    carrinho.navegarParaCarrinho();
 
-        carrinho.verificarDetalhesEnderecoERevisaoPedido();
+    // Assert (página do carrinho)
+    cy.url().should("include", "/view_cart");
+    cy.contains("Shopping Cart").should("be.visible");
 
-        carrinho.inserirComentarioEFinalizarPedido('Pedido feito!');
+    // Act (checkout)
+    cy.contains("Proceed To Checkout").click();
 
-        const nomeCartao = nome + ' ' + faker.person.lastName();
-        const numeroCartao = faker.finance.creditCardNumber();
-        const cvc = faker.finance.creditCardCVV();
-        const expiracao = { mes: '12', ano: '2028' };
-        carrinho.preencherPagamento(nomeCartao, numeroCartao, cvc, expiracao);
+    // Assert (detalhes e revisão)
+    cy.contains("Address Details").should("be.visible");
+    cy.contains("Review Your Order").should("be.visible");
 
-        carrinho.confirmarPagamento();
+    // Act (comentário + place order)
+    carrinho.inserirComentarioEFinalizarPedido("Pedido feito!");
 
-        carrinho.verificarMensagemSucessoPedido();
+    // Arrange (dados de pagamento)
+    const nomeCartao = `${nome} ${faker.person.lastName()}`;
+    const numeroCartao = faker.finance.creditCardNumber();
+    const cvc = faker.finance.creditCardCVV();
+    const expiracao = { mes: "12", ano: "2028" };
 
-        cy.contains('Delete Account').click();
+    // Act (preencher pagamento + confirmar)
+    carrinho.preencherPagamento(nomeCartao, numeroCartao, cvc, expiracao);
+    carrinho.confirmarPagamento();
 
-        cy.contains('ACCOUNT DELETED!').should('be.visible');
-        cy.contains('Continue').click();
-    });
+    // Assert (pedido realizado)
+    cy.contains("Congratulations! Your order has been confirmed!").should("be.visible");
 
+    // Act (deletar conta)
+    cy.contains("Delete Account").click();
+
+    // Assert (conta deletada)
+    cy.contains("Account Deleted!").should("be.visible");
+    cy.contains("Continue").click();
+  });
 });
