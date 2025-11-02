@@ -1,0 +1,47 @@
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json.lock
+.DS_Store
+
+# Build / cache
+dist/
+build/
+coverage/
+.tmp/
+.temp/
+.cache/
+.nyc_output/
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+cypress/reports/
+cypress/fixtures/*.tmp
+cypress/.cache/
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# IDE / SO
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+*.iml
+
+# Git
+.git-credentials
+*.orig
+
+# Se tiver .NET misturado
+bin/
+obj/
+
+# Outros comuns
+*.log
