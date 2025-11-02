@@ -1,10 +1,11 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
+  reporter: "cypress-mochawesome-reporter",
   e2e: {
-    reporter: 'cypress-mochawesome-reporter',
+    baseUrl: process.env.CYPRESS_BASE_URL || "https://automationexercise.com",
     setupNodeEvents(on, config) {
-      return config;
+      require("cypress-mochawesome-reporter/plugin")(on);
     },
   },
 });
