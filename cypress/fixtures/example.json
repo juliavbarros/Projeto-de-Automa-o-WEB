@@ -1,0 +1,12 @@
+{
+  "name": "QA Tester",
+  "email": "hello@cypress.io",
+  "body": "Fixtures are a great way to mock data for responses to routes",
+  "user":"qa-tester--1761215221559@gmail.com",
+  "password":"12345",
+  "subject": "Support",
+  "message": "Testing using fixture and upload"
+
+}
+
+
